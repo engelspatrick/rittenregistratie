@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1a1a2e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Ritten" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <title>Rittenregistratie</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+/* ============================================
+   RITTENREGISTRATIE PWA — Stijlen
+   Donker, clean, professioneel
+   ============================================ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f0f1a;
+  --bg2: #16162a;
+  --bg3: #1e1e35;
+  --bg4: #252540;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0f0f8;
+  --text2: #9090b8;
+  --text3: #6060a0;
+  --blue: #3a86ff;
+  --blue2: #1a66df;
+  --blue-soft: rgba(58,134,255,0.15);
+  --coral: #ff6b6b;
+  --coral-soft: rgba(255,107,107,0.15);
+  --amber: #ffd166;
+  --amber-soft: rgba(255,209,102,0.15);
+  --green: #06d6a0;
+  --green-soft: rgba(6,214,160,0.15);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 18px;
+  --tab-h: 68px;
+  --header-h: 60px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- SPLASH ---- */
+#screen-splash {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  transition: opacity 0.4s ease;
+}
+#screen-splash.fade-out { opacity: 0; pointer-events: none; }
+
+.splash-inner { text-align: center; }
+.splash-logo { margin-bottom: 20px; animation: pop 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+.splash-title { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; }
+.splash-sub { color: var(--text2); font-size: 14px; margin-top: 6px; }
+
+@keyframes pop {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ---- APP WRAPPER ---- */
+#app { 
+  display: flex; flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+.hidden { display: none !important; }
+
+/* ---- TAB BAR ---- */
+.tab-bar {
+  order: 2;
+  display: flex;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding-bottom: var(--safe-bottom);
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px; padding: 10px 4px;
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); font-family: 'DM Sans', sans-serif;
+  font-size: 11px; font-weight: 500;
+  transition: color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tab-btn.active { color: var(--blue); }
+.tab-btn svg { transition: transform 0.15s; }
+.tab-btn.active svg { transform: translateY(-1px); }
+
+/* ---- TAB CONTENT ---- */
+.tab-content {
+  order: 1;
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 0 16px 24px;
+  -webkit-overflow-scrolling: touch;
+}
+.tab-content.hidden { display: none; }
+.tab-content.active { display: block; }
+
+/* ---- PAGE HEADER ---- */
+.page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 0 16px;
+  position: sticky; top: 0; z-index: 10;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.page-header h2 {
+  font-size: 22px; font-weight: 600; letter-spacing: -0.4px;
+}
+
+.header-actions { display: flex; align-items: center; gap: 8px; }
+
+/* ---- FORM ---- */
+.form-row { margin-bottom: 16px; }
+.form-row.two-col {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+
+.field { margin-bottom: 16px; }
+.field label {
+  display: block; font-size: 12px; font-weight: 500;
+  color: var(--text2); text-transform: uppercase;
+  letter-spacing: 0.06em; margin-bottom: 6px;
+}
+.label-hint {
+  font-size: 11px; color: var(--text3);
+  text-transform: none; letter-spacing: 0;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="url"],
+select,
+textarea {
+  width: 100%; padding: 11px 14px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  font-family: 'DM Sans', sans-serif; font-size: 15px;
+  outline: none; -webkit-appearance: none; appearance: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--blue); background: var(--bg4);
+}
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236060a0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+textarea { resize: vertical; min-height: 64px; }
+input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
+
+.input-locatie-wrap { display: flex; gap: 8px; align-items: center; }
+.input-locatie-wrap input { flex: 1; }
+.btn-locatie {
+  width: 44px; height: 44px; flex-shrink: 0;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-locatie:hover, .btn-locatie:active { background: var(--blue-soft); color: var(--blue); border-color: var(--blue); }
+
+/* Autocomplete suggestions */
+.adres-suggestions {
+  background: var(--bg4); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); margin-top: 4px; overflow: hidden;
+}
+.adres-suggestions.hidden { display: none; }
+.sug-item {
+  padding: 10px 14px; cursor: pointer; font-size: 14px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.sug-item:last-child { border-bottom: none; }
+.sug-item:hover { background: var(--bg3); }
+
+/* KM berekend */
+.km-berekend {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--blue-soft); border: 1px solid rgba(58,134,255,0.3);
+  border-radius: var(--radius-sm); padding: 10px 14px;
+  margin-bottom: 16px;
+}
+.km-berekend.hidden { display: none; }
+.km-label { font-size: 13px; color: var(--text2); }
+.km-value { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: var(--blue); }
+
+.km-badge {
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  color: var(--text2); background: var(--bg3);
+  padding: 4px 10px; border-radius: 20px;
+  border: 1px solid var(--border);
+}
+
+/* Buttons */
+.btn-primary {
+  width: 100%; padding: 15px; margin-top: 8px;
+  background: var(--blue); border: none; border-radius: var(--radius);
+  color: white; font-family: 'DM Sans', sans-serif;
+  font-size: 16px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: background 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-primary:active { background: var(--blue2); transform: scale(0.98); }
+
+.btn-secondary {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 16px; background: var(--bg3);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); font-family: 'DM Sans', sans-serif;
+  font-size: 14px; cursor: pointer;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  margin-bottom: 10px; width: 100%;
+}
+.btn-secondary:hover { background: var(--bg4); }
+
+.btn-danger {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 16px; background: var(--coral-soft);
+  border: 1px solid rgba(255,107,107,0.3); border-radius: var(--radius-sm);
+  color: var(--coral); font-family: 'DM Sans', sans-serif;
+  font-size: 14px; cursor: pointer;
+  width: 100%; margin-top: 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-icon {
+  width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text2); cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Succes/sync banners */
+.succes-banner, .sync-banner {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 500; margin-top: 12px;
+}
+.succes-banner {
+  background: var(--green-soft); color: var(--green);
+  border: 1px solid rgba(6,214,160,0.3);
+}
+.succes-banner.hidden, .sync-banner.hidden { display: none; }
+.sync-banner { background: var(--blue-soft); color: var(--blue); border: 1px solid rgba(58,134,255,0.3); }
+
+/* ---- OVERZICHT / LIJST ---- */
+.filter-select {
+  padding: 7px 30px 7px 10px; font-size: 13px;
+  border-radius: var(--radius-sm); width: auto;
+}
+
+.maand-totalen {
+  display: flex; gap: 8px; margin-bottom: 16px;
+  overflow-x: auto; padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.maand-totalen::-webkit-scrollbar { display: none; }
+
+.maand-chip {
+  flex-shrink: 0; padding: 6px 12px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 20px; font-size: 12px; cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.1s, border-color 0.1s;
+}
+.maand-chip.active {
+  background: var(--blue-soft); border-color: var(--blue); color: var(--blue);
+}
+
+.rit-kaart {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+  margin-bottom: 10px; cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.rit-kaart:hover { background: var(--bg3); border-color: var(--border2); }
+
+.rit-type-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 5px;
+}
+.dot-zakelijk { background: var(--blue); }
+.dot-prive { background: var(--coral); }
+.dot-woon-werk { background: var(--amber); }
+
+.rit-info { flex: 1; min-width: 0; }
+.rit-route {
+  font-size: 14px; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.rit-meta { display: flex; gap: 12px; font-size: 12px; color: var(--text2); flex-wrap: wrap; }
+.rit-km { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500; color: var(--text); flex-shrink: 0; }
+
+.rit-sync-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--amber); flex-shrink: 0; margin-top: 7px;
+  title: "Niet gesynchroniseerd";
+}
+
+.leeg-state {
+  text-align: center; padding: 60px 20px;
+  color: var(--text3); display: flex; flex-direction: column;
+  align-items: center; gap: 12px;
+}
+
+/* ---- STATISTIEKEN ---- */
+.stats-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 14px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-value { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; }
+.accent-blue { color: var(--blue); }
+.accent-coral { color: var(--coral); }
+.accent-amber { color: var(--amber); }
+
+/* Privé meter */
+.prive-meter {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  margin-bottom: 20px;
+}
+.prive-meter-header {
+  display: flex; justify-content: space-between;
+  font-size: 13px; color: var(--text2); margin-bottom: 10px;
+}
+.prive-meter-bar {
+  height: 8px; background: var(--bg4); border-radius: 4px; overflow: hidden;
+  margin-bottom: 8px;
+}
+.prive-meter-fill {
+  height: 100%; border-radius: 4px;
+  background: var(--green);
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1), background 0.3s;
+}
+.prive-meter-fill.oranje { background: var(--amber); }
+.prive-meter-fill.rood { background: var(--coral); }
+.prive-status { font-size: 12px; }
+
+.grafiek-wrap {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  margin-bottom: 20px;
+}
+
+.sync-queue {
+  background: var(--amber-soft); border: 1px solid rgba(255,209,102,0.3);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--amber);
+}
+.sync-queue.hidden { display: none; }
+.btn-sync {
+  margin-left: auto; padding: 6px 12px;
+  background: var(--amber); color: #1a1200;
+  border: none; border-radius: 6px; font-size: 12px;
+  font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+
+/* ---- INSTELLINGEN ---- */
+.settings-sectie {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  margin-bottom: 14px;
+}
+.settings-sectie h3 {
+  font-size: 13px; font-weight: 600; color: var(--text2);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin-bottom: 14px;
+}
+.settings-uitleg {
+  font-size: 13px; color: var(--text2); margin-bottom: 12px; line-height: 1.5;
+}
+.settings-versie { text-align: center; }
+.settings-versie p { font-size: 12px; color: var(--text3); }
+
+.sheets-status {
+  padding: 10px 12px; border-radius: var(--radius-sm);
+  font-size: 13px; margin-top: 8px;
+}
+.sheets-status.ok { background: var(--green-soft); color: var(--green); border: 1px solid rgba(6,214,160,0.3); }
+.sheets-status.fout { background: var(--coral-soft); color: var(--coral); border: 1px solid rgba(255,107,107,0.3); }
+.sheets-status.hidden { display: none; }
+
+/* ---- MODAL ---- */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(0,0,0,0.7);
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: var(--safe-bottom);
+  animation: fade-in 0.2s ease;
+}
+.modal-overlay.hidden { display: none; }
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  width: 100%; max-width: 520px; max-height: 90vh;
+  overflow-y: auto; padding: 20px;
+  animation: slide-up 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes slide-up { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.modal-header h3 { font-size: 17px; font-weight: 600; }
+.btn-modal-close {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 50%; width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text2);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.modal-detail-row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.modal-detail-row:last-of-type { border-bottom: none; }
+.modal-detail-label { font-size: 12px; color: var(--text2); flex-shrink: 0; }
+.modal-detail-val { font-size: 14px; text-align: right; }
+
+.modal-actions { margin-top: 16px; }
+.btn-danger-sm {
+  padding: 10px 16px; background: var(--coral-soft);
+  border: 1px solid rgba(255,107,107,0.3); border-radius: var(--radius-sm);
+  color: var(--coral); font-family: 'DM Sans', sans-serif;
+  font-size: 14px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Type badges */
+.type-badge {
+  display: inline-block; padding: 3px 8px;
+  border-radius: 6px; font-size: 12px; font-weight: 500;
+}
+.badge-zakelijk { background: var(--blue-soft); color: var(--blue); }
+.badge-prive { background: var(--coral-soft); color: var(--coral); }
+.badge-woon-werk { background: var(--amber-soft); color: var(--amber); }
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
+
+</style>
+</head>
+<body>
+
+<!-- SCHERM: Splash / Laden -->
+<div id="screen-splash" class="screen active">
+  <div class="splash-inner">
+    <div class="splash-logo">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+        <rect width="56" height="56" rx="16" fill="#3a86ff"/>
+        <path d="M14 36 L22 20 L28 30 L34 22 L42 36" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <circle cx="42" cy="36" r="3" fill="white"/>
+        <circle cx="14" cy="36" r="3" fill="white"/>
+      </svg>
+    </div>
+    <h1 class="splash-title">Rittenregistratie</h1>
+    <p class="splash-sub">Belastingdienst conform</p>
+  </div>
+</div>
+
+<!-- HOOFDAPP -->
+<div id="app" class="hidden">
+
+  <!-- Tab bar -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="new">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <span>Rit invoeren</span>
+    </button>
+    <button class="tab-btn" data-tab="list">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="13" y2="16"/></svg>
+      <span>Overzicht</span>
+    </button>
+    <button class="tab-btn" data-tab="stats">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Statistieken</span>
+    </button>
+    <button class="tab-btn" data-tab="settings">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Instellingen</span>
+    </button>
+  </nav>
+
+  <!-- TAB: Nieuwe rit -->
+  <div id="tab-new" class="tab-content active">
+    <div class="page-header">
+      <h2>Nieuwe rit</h2>
+      <span id="km-teller-badge" class="km-badge">Stand: — km</span>
+    </div>
+
+    <form id="form-rit" novalidate>
+
+      <!-- Datum & Type -->
+      <div class="form-row two-col">
+        <div class="field">
+          <label for="f-datum">Datum</label>
+          <input type="date" id="f-datum" required />
+        </div>
+        <div class="field">
+          <label for="f-type">Type rit</label>
+          <select id="f-type">
+            <option value="zakelijk">Zakelijk</option>
+            <option value="prive">Privé</option>
+            <option value="woon-werk">Woon-werk</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Kilometerstanden -->
+      <div class="form-row two-col">
+        <div class="field">
+          <label for="f-km-start">Beginstand (km)</label>
+          <input type="number" id="f-km-start" placeholder="bv. 45210" min="0" required />
+        </div>
+        <div class="field">
+          <label for="f-km-eind">Eindstand (km)</label>
+          <input type="number" id="f-km-eind" placeholder="bv. 45285" min="0" required />
+        </div>
+      </div>
+
+      <!-- Afstand berekend -->
+      <div id="km-berekend" class="km-berekend hidden">
+        <span class="km-label">Afstand</span>
+        <span id="km-berekend-val" class="km-value">— km</span>
+      </div>
+
+      <!-- Van -->
+      <div class="field">
+        <label for="f-van">Vertrekadres</label>
+        <div class="input-locatie-wrap">
+          <input type="text" id="f-van" placeholder="Straat + huisnr, Stad" required />
+          <button type="button" class="btn-locatie" id="btn-loc-van" title="Huidige locatie gebruiken">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" stroke-dasharray="2 3"/></svg>
+          </button>
+        </div>
+        <div class="adres-suggestions hidden" id="sug-van"></div>
+      </div>
+
+      <!-- Via (optioneel) -->
+      <div class="field">
+        <label for="f-via">Via (optioneel) <span class="label-hint">alleen bij omweg</span></label>
+        <input type="text" id="f-via" placeholder="Omwegreden of tussenhalte" />
+      </div>
+
+      <!-- Naar -->
+      <div class="field">
+        <label for="f-naar">Aankomstadres</label>
+        <div class="input-locatie-wrap">
+          <input type="text" id="f-naar" placeholder="Straat + huisnr, Stad" required />
+          <button type="button" class="btn-locatie" id="btn-loc-naar" title="Huidige locatie gebruiken">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" stroke-dasharray="2 3"/></svg>
+          </button>
+        </div>
+        <div class="adres-suggestions hidden" id="sug-naar"></div>
+      </div>
+
+      <!-- Zakelijk doel (alleen bij zakelijk) -->
+      <div id="zakelijk-veld" class="field">
+        <label for="f-doel">Zakelijk doel / relatie</label>
+        <input type="text" id="f-doel" placeholder="bv. Klantbezoek Acme BV" />
+      </div>
+
+      <!-- Opmerking -->
+      <div class="field">
+        <label for="f-opmerking">Opmerking <span class="label-hint">optioneel</span></label>
+        <textarea id="f-opmerking" rows="2" placeholder="Extra toelichting..."></textarea>
+      </div>
+
+      <button type="submit" class="btn-primary" id="btn-opslaan">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Rit opslaan
+      </button>
+
+    </form>
+
+    <div id="succes-banner" class="succes-banner hidden">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Rit opgeslagen!
+    </div>
+
+    <div id="sync-banner" class="sync-banner hidden">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.34"/></svg>
+      Synchroniseren naar Sheets...
+    </div>
+  </div>
+
+  <!-- TAB: Overzicht -->
+  <div id="tab-list" class="tab-content hidden">
+    <div class="page-header">
+      <h2>Overzicht</h2>
+      <div class="header-actions">
+        <select id="filter-jaar" class="filter-select"></select>
+        <button id="btn-export" class="btn-icon" title="Exporteren">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="maand-totalen" id="maand-totalen"></div>
+
+    <div id="ritten-lijst"></div>
+
+    <div id="leeg-state" class="leeg-state hidden">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="13" y2="16"/></svg>
+      <p>Nog geen ritten geregistreerd</p>
+    </div>
+  </div>
+
+  <!-- TAB: Statistieken -->
+  <div id="tab-stats" class="tab-content hidden">
+    <div class="page-header">
+      <h2>Statistieken</h2>
+      <select id="stats-jaar" class="filter-select"></select>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Totaal km dit jaar</span>
+        <span class="stat-value" id="stat-totaal">—</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Zakelijk</span>
+        <span class="stat-value accent-blue" id="stat-zakelijk">—</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Privé</span>
+        <span class="stat-value accent-coral" id="stat-prive">—</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Woon-werk</span>
+        <span class="stat-value accent-amber" id="stat-woonwerk">—</span>
+      </div>
+    </div>
+
+    <!-- Privé 500km indicator -->
+    <div class="prive-meter">
+      <div class="prive-meter-header">
+        <span>Privé gebruik</span>
+        <span id="prive-meter-label">— / 500 km</span>
+      </div>
+      <div class="prive-meter-bar">
+        <div id="prive-meter-fill" class="prive-meter-fill" style="width:0%"></div>
+      </div>
+      <div id="prive-status" class="prive-status"></div>
+    </div>
+
+    <!-- Maandgrafiek -->
+    <div class="grafiek-wrap">
+      <canvas id="maand-grafiek" height="200"></canvas>
+    </div>
+
+    <!-- Niet-gesynchroniseerde ritten -->
+    <div id="sync-queue-info" class="sync-queue hidden">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="sync-queue-txt"></span>
+      <button id="btn-sync-nu" class="btn-sync">Nu synchroniseren</button>
+    </div>
+  </div>
+
+  <!-- TAB: Instellingen -->
+  <div id="tab-settings" class="tab-content hidden">
+    <div class="page-header">
+      <h2>Instellingen</h2>
+    </div>
+
+    <div class="settings-sectie">
+      <h3>Voertuig</h3>
+      <div class="field">
+        <label for="s-kenteken">Kenteken</label>
+        <input type="text" id="s-kenteken" placeholder="XX-000-X" />
+      </div>
+      <div class="field">
+        <label for="s-merk">Merk & model</label>
+        <input type="text" id="s-merk" placeholder="bv. Audi A4 Avant 2.0 TFSI" />
+      </div>
+    </div>
+
+    <div class="settings-sectie">
+      <h3>Standaard adressen</h3>
+      <div class="field">
+        <label for="s-thuis">Thuisadres</label>
+        <input type="text" id="s-thuis" placeholder="Straat + huisnr, Stad" />
+      </div>
+      <div class="field">
+        <label for="s-kantoor">Kantooradres</label>
+        <input type="text" id="s-kantoor" placeholder="Straat + huisnr, Stad" />
+      </div>
+    </div>
+
+    <div class="settings-sectie">
+      <h3>Google Sheets koppeling</h3>
+      <p class="settings-uitleg">Vul hieronder de URL in van jouw Google Apps Script Web App (zie instructies in de README).</p>
+      <div class="field">
+        <label for="s-sheets-url">Apps Script Web App URL</label>
+        <input type="url" id="s-sheets-url" placeholder="https://script.google.com/macros/s/.../exec" />
+      </div>
+      <button id="btn-test-sheets" class="btn-secondary">Verbinding testen</button>
+      <div id="sheets-status" class="sheets-status hidden"></div>
+    </div>
+
+    <div class="settings-sectie">
+      <h3>Data</h3>
+      <button id="btn-export-csv" class="btn-secondary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exporteer alle ritten (CSV)
+      </button>
+      <button id="btn-wis-data" class="btn-danger">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        Wis alle data
+      </button>
+    </div>
+
+    <div class="settings-sectie settings-versie">
+      <p>Rittenregistratie v1.0 · Belastingdienst conform</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal: rit details / bewerken -->
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-titel">Rit details</h3>
+      <button id="modal-close" class="btn-modal-close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button id="modal-verwijder" class="btn-danger-sm">Verwijderen</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+/* ============================================
+   RITTENREGISTRATIE PWA — App logica
+   ============================================ */
+
+// ── Storage helpers ──────────────────────────
+const DB = {
+  get: (k, def = null) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch { return def; } },
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { console.error('Opslaan mislukt', e); } }
+};
+
+// ── State ────────────────────────────────────
+let ritten = DB.get('ritten', []);
+let instellingen = DB.get('instellingen', {
+  kenteken: '', merk: '', thuis: '', kantoor: '', sheetsUrl: ''
+});
+let syncQueue = DB.get('syncQueue', []); // IDs die nog niet gesynchroniseerd zijn
+
+// ── Init ─────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const splash = document.getElementById('screen-splash');
+    splash.classList.add('fade-out');
+    setTimeout(() => {
+      splash.classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+    }, 400);
+  }, 900);
+
+  initForm();
+  initTabs();
+  initSettings();
+  initModal();
+  laadInstellingen();
+  vulJaarFilters();
+
+  // SW registreren
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  // Online: probeer sync queue te verwerken
+  window.addEventListener('online', () => verwerkSyncQueue());
+});
+
+// ── Tabs ─────────────────────────────────────
+function initTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => {
+        c.classList.remove('active');
+        c.classList.add('hidden');
+      });
+      btn.classList.add('active');
+      const el = document.getElementById('tab-' + tab);
+      el.classList.remove('hidden');
+      el.classList.add('active');
+      if (tab === 'list') renderLijst();
+      if (tab === 'stats') renderStats();
+    });
+  });
+}
+
+// ── Form ─────────────────────────────────────
+function initForm() {
+  // Datum: vandaag als standaard
+  const fDatum = document.getElementById('f-datum');
+  fDatum.value = vandaag();
+
+  // Type: zakelijk veld tonen/verbergen
+  const fType = document.getElementById('f-type');
+  const zakelijkVeld = document.getElementById('zakelijk-veld');
+  fType.addEventListener('change', () => {
+    zakelijkVeld.style.display = fType.value === 'zakelijk' ? '' : 'none';
+  });
+
+  // KM berekening
+  const fStart = document.getElementById('f-km-start');
+  const fEind = document.getElementById('f-km-eind');
+  [fStart, fEind].forEach(el => el.addEventListener('input', berekenKm));
+
+  // Beginstand automatisch invullen vanuit laatste rit
+  const laagste = ritten.length ? Math.max(...ritten.map(r => r.kmEind)) : null;
+  if (laagste) {
+    fStart.value = laagste;
+    document.getElementById('km-teller-badge').textContent = `Stand: ${laagste.toLocaleString('nl-NL')} km`;
+  }
+
+  // Locatieknoppen
+  document.getElementById('btn-loc-van').addEventListener('click', () => vraagLocatie('f-van'));
+  document.getElementById('btn-loc-naar').addEventListener('click', () => vraagLocatie('f-naar'));
+
+  // Standaard adressen suggesties
+  ['f-van', 'f-naar'].forEach(id => {
+    document.getElementById(id).addEventListener('focus', (e) => toonStandaardSuggesties(id));
+    document.getElementById(id).addEventListener('blur', () => {
+      setTimeout(() => { const s = document.getElementById('sug-' + id.split('-')[1]); if(s) s.classList.add('hidden'); }, 200);
+    });
+  });
+
+  // Opslaan
+  document.getElementById('form-rit').addEventListener('submit', slaRitOp);
+
+  // Export knop
+  document.getElementById('btn-export').addEventListener('click', exporteerCSV);
+}
+
+function toonStandaardSuggesties(fieldId) {
+  const sugId = 'sug-' + fieldId.split('-')[1]; // sug-van of sug-naar
+  const sugEl = document.getElementById(sugId);
+  if (!sugEl) return;
+
+  const opties = [];
+  if (instellingen.thuis) opties.push({ label: '🏠 Thuisadres', waarde: instellingen.thuis });
+  if (instellingen.kantoor) opties.push({ label: '🏢 Kantooradres', waarde: instellingen.kantoor });
+
+  // Recente adressen
+  const recente = [...new Set(
+    ritten.flatMap(r => [r.van, r.naar]).filter(Boolean)
+  )].slice(0, 4);
+  recente.forEach(a => {
+    if (a !== instellingen.thuis && a !== instellingen.kantoor) {
+      opties.push({ label: a, waarde: a });
+    }
+  });
+
+  if (opties.length === 0) return;
+
+  sugEl.innerHTML = opties.map(o =>
+    `<div class="sug-item" data-waarde="${o.waarde}">${o.label}</div>`
+  ).join('');
+  sugEl.classList.remove('hidden');
+
+  sugEl.querySelectorAll('.sug-item').forEach(item => {
+    item.addEventListener('mousedown', () => {
+      document.getElementById(fieldId).value = item.dataset.waarde;
+      sugEl.classList.add('hidden');
+    });
+  });
+}
+
+function berekenKm() {
+  const start = parseInt(document.getElementById('f-km-start').value) || 0;
+  const eind = parseInt(document.getElementById('f-km-eind').value) || 0;
+  const el = document.getElementById('km-berekend');
+  const valEl = document.getElementById('km-berekend-val');
+  if (start > 0 && eind > start) {
+    valEl.textContent = `${(eind - start).toLocaleString('nl-NL')} km`;
+    el.classList.remove('hidden');
+  } else {
+    el.classList.add('hidden');
+  }
+}
+
+function slaRitOp(e) {
+  e.preventDefault();
+  const fDatum = document.getElementById('f-datum').value;
+  const fType = document.getElementById('f-type').value;
+  const kmStart = parseInt(document.getElementById('f-km-start').value);
+  const kmEind = parseInt(document.getElementById('f-km-eind').value);
+  const van = document.getElementById('f-van').value.trim();
+  const via = document.getElementById('f-via').value.trim();
+  const naar = document.getElementById('f-naar').value.trim();
+  const doel = document.getElementById('f-doel').value.trim();
+  const opmerking = document.getElementById('f-opmerking').value.trim();
+
+  // Validatie
+  if (!fDatum || !van || !naar || !kmStart || !kmEind) {
+    alert('Vul alle verplichte velden in (datum, adressen, km-standen).');
+    return;
+  }
+  if (kmEind <= kmStart) {
+    alert('Eindstand moet groter zijn dan beginstand.');
+    return;
+  }
+
+  const rit = {
+    id: Date.now().toString(),
+    datum: fDatum,
+    type: fType,
+    kmStart,
+    kmEind,
+    kmAfstand: kmEind - kmStart,
+    van,
+    via,
+    naar,
+    doel,
+    opmerking,
+    aangemaakt: new Date().toISOString(),
+    gesynchroniseerd: false
+  };
+
+  ritten.push(rit);
+  DB.set('ritten', ritten);
+  syncQueue.push(rit.id);
+  DB.set('syncQueue', syncQueue);
+
+  // UI feedback
+  toonSucces();
+  resetForm(kmEind);
+  updateKmBadge(kmEind);
+
+  // Probeer te synchroniseren
+  if (navigator.onLine && instellingen.sheetsUrl) {
+    syncRit(rit);
+  }
+}
+
+function toonSucces() {
+  const banner = document.getElementById('succes-banner');
+  banner.classList.remove('hidden');
+  setTimeout(() => banner.classList.add('hidden'), 2500);
+}
+
+function resetForm(nieuweBeginkm) {
+  document.getElementById('f-km-start').value = nieuweBeginkm || '';
+  document.getElementById('f-km-eind').value = '';
+  document.getElementById('f-van').value = '';
+  document.getElementById('f-via').value = '';
+  document.getElementById('f-naar').value = '';
+  document.getElementById('f-doel').value = '';
+  document.getElementById('f-opmerking').value = '';
+  document.getElementById('f-datum').value = vandaag();
+  document.getElementById('km-berekend').classList.add('hidden');
+}
+
+function updateKmBadge(km) {
+  document.getElementById('km-teller-badge').textContent = `Stand: ${km.toLocaleString('nl-NL')} km`;
+}
+
+function vraagLocatie(fieldId) {
+  if (!navigator.geolocation) {
+    alert('Locatietoegang niet beschikbaar op dit apparaat.');
+    return;
+  }
+  const btn = document.getElementById('btn-loc-' + fieldId.split('-')[1]);
+  btn.style.opacity = '0.5';
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const { latitude, longitude } = pos.coords;
+      try {
+        const resp = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+        );
+        const data = await resp.json();
+        const adres = [
+          data.address?.road,
+          data.address?.house_number,
+          data.address?.city || data.address?.town || data.address?.village
+        ].filter(Boolean).join(' ');
+        document.getElementById(fieldId).value = adres || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+      } catch {
+        document.getElementById(fieldId).value = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+      }
+      btn.style.opacity = '';
+    },
+    (err) => {
+      btn.style.opacity = '';
+      alert('Locatie ophalen mislukt. Controleer je toestemming.');
+    },
+    { timeout: 8000 }
+  );
+}
+
+// ── Overzicht / Lijst ─────────────────────────
+function renderLijst() {
+  const jaar = parseInt(document.getElementById('filter-jaar').value) || new Date().getFullYear();
+  const jaarRitten = ritten.filter(r => new Date(r.datum).getFullYear() === jaar)
+    .sort((a, b) => b.datum.localeCompare(a.datum));
+
+  renderMaandChips(jaarRitten, jaar);
+
+  const container = document.getElementById('ritten-lijst');
+  const leeg = document.getElementById('leeg-state');
+
+  if (jaarRitten.length === 0) {
+    container.innerHTML = '';
+    leeg.classList.remove('hidden');
+    return;
+  }
+  leeg.classList.add('hidden');
+
+  // Groepeer per maand
+  const perMaand = {};
+  jaarRitten.forEach(r => {
+    const m = r.datum.substring(0, 7);
+    if (!perMaand[m]) perMaand[m] = [];
+    perMaand[m].push(r);
+  });
+
+  container.innerHTML = Object.entries(perMaand).sort((a,b) => b[0].localeCompare(a[0])).map(([maand, mrs]) => `
+    <div class="maand-groep" id="maand-${maand}">
+      <div style="font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;padding:8px 0 10px;font-weight:600">
+        ${formatMaandLabel(maand)} · ${mrs.reduce((s,r) => s+r.kmAfstand,0).toLocaleString('nl-NL')} km
+      </div>
+      ${mrs.map(ritKaartHTML).join('')}
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.rit-kaart').forEach(k => {
+    k.addEventListener('click', () => openModal(k.dataset.id));
+  });
+}
+
+function ritKaartHTML(r) {
+  const syncDot = !r.gesynchroniseerd ? `<div class="rit-sync-dot" title="Niet gesynchroniseerd"></div>` : '';
+  return `
+    <div class="rit-kaart" data-id="${r.id}">
+      <div class="rit-type-dot dot-${r.type}"></div>
+      <div class="rit-info">
+        <div class="rit-route">${r.van} → ${r.naar}</div>
+        <div class="rit-meta">
+          <span>${formatDatum(r.datum)}</span>
+          <span class="type-badge badge-${r.type}">${typeLabel(r.type)}</span>
+          ${r.doel ? `<span>${r.doel}</span>` : ''}
+        </div>
+      </div>
+      ${syncDot}
+      <div class="rit-km">${r.kmAfstand} km</div>
+    </div>
+  `;
+}
+
+function renderMaandChips(jaarRitten, jaar) {
+  const maanden = [...new Set(jaarRitten.map(r => r.datum.substring(0, 7)))].sort().reverse();
+  const container = document.getElementById('maand-totalen');
+  const huidigeMaand = new Date().toISOString().substring(0, 7);
+
+  container.innerHTML = [
+    `<div class="maand-chip ${!container.dataset.active || container.dataset.active === 'alle' ? 'active' : ''}" data-maand="alle">Alle</div>`,
+    ...maanden.map(m => {
+      const km = jaarRitten.filter(r => r.datum.startsWith(m)).reduce((s,r) => s+r.kmAfstand, 0);
+      return `<div class="maand-chip ${container.dataset.active === m ? 'active' : ''}" data-maand="${m}">${formatMaandLabel(m)} (${km} km)</div>`;
+    })
+  ].join('');
+
+  container.querySelectorAll('.maand-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      container.dataset.active = chip.dataset.maand;
+      container.querySelectorAll('.maand-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      // Scroll naar maand of toon alle
+      if (chip.dataset.maand === 'alle') {
+        renderLijst();
+      } else {
+        // Filter: verberg andere maandgroepen
+        document.querySelectorAll('.maand-groep').forEach(g => {
+          g.style.display = g.id === 'maand-' + chip.dataset.maand ? '' : 'none';
+        });
+      }
+    });
+  });
+}
+
+// ── Statistieken ─────────────────────────────
+function renderStats() {
+  const jaar = parseInt(document.getElementById('stats-jaar').value) || new Date().getFullYear();
+  const jaarRitten = ritten.filter(r => new Date(r.datum).getFullYear() === jaar);
+
+  const totaal = jaarRitten.reduce((s, r) => s + r.kmAfstand, 0);
+  const zakelijk = jaarRitten.filter(r => r.type === 'zakelijk').reduce((s,r) => s+r.kmAfstand, 0);
+  const prive = jaarRitten.filter(r => r.type === 'prive').reduce((s,r) => s+r.kmAfstand, 0);
+  const woonwerk = jaarRitten.filter(r => r.type === 'woon-werk').reduce((s,r) => s+r.kmAfstand, 0);
+
+  document.getElementById('stat-totaal').textContent = totaal.toLocaleString('nl-NL') + ' km';
+  document.getElementById('stat-zakelijk').textContent = zakelijk.toLocaleString('nl-NL') + ' km';
+  document.getElementById('stat-prive').textContent = prive.toLocaleString('nl-NL') + ' km';
+  document.getElementById('stat-woonwerk').textContent = woonwerk.toLocaleString('nl-NL') + ' km';
+
+  // Privé meter
+  const privePrivé = prive + woonwerk; // woon-werk telt als privé
+  const pct = Math.min((privePrivé / 500) * 100, 100);
+  const fill = document.getElementById('prive-meter-fill');
+  fill.style.width = pct + '%';
+  fill.className = 'prive-meter-fill' + (pct > 90 ? ' rood' : pct > 70 ? ' oranje' : '');
+  document.getElementById('prive-meter-label').textContent = `${privePrivé.toLocaleString('nl-NL')} / 500 km`;
+
+  const statusEl = document.getElementById('prive-status');
+  const resterend = Math.max(0, 500 - privePrivé);
+  if (privePrivé >= 500) {
+    statusEl.style.color = 'var(--coral)';
+    statusEl.textContent = `⚠ Grens overschreden! Bijtelling is verschuldigd.`;
+  } else {
+    statusEl.style.color = 'var(--text2)';
+    statusEl.textContent = `Nog ${resterend.toLocaleString('nl-NL')} km privé ruimte voor dit jaar.`;
+  }
+
+  // Maandgrafiek
+  renderGrafiek(jaar);
+
+  // Sync queue info
+  if (syncQueue.length > 0) {
+    document.getElementById('sync-queue-info').classList.remove('hidden');
+    document.getElementById('sync-queue-txt').textContent = `${syncQueue.length} rit(ten) niet gesynchroniseerd`;
+  } else {
+    document.getElementById('sync-queue-info').classList.add('hidden');
+  }
+}
+
+let grafiekInstantie = null;
+function renderGrafiek(jaar) {
+  const maanden = Array.from({length: 12}, (_, i) => i);
+  const labels = maanden.map(m => ['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec'][m]);
+
+  const zakelijkData = maanden.map(m =>
+    ritten.filter(r => new Date(r.datum).getFullYear() === jaar && new Date(r.datum).getMonth() === m && r.type === 'zakelijk')
+      .reduce((s,r) => s+r.kmAfstand, 0)
+  );
+  const priveData = maanden.map(m =>
+    ritten.filter(r => new Date(r.datum).getFullYear() === jaar && new Date(r.datum).getMonth() === m && r.type !== 'zakelijk')
+      .reduce((s,r) => s+r.kmAfstand, 0)
+  );
+
+  const ctx = document.getElementById('maand-grafiek').getContext('2d');
+  if (grafiekInstantie) grafiekInstantie.destroy();
+
+  grafiekInstantie = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Zakelijk',
+          data: zakelijkData,
+          backgroundColor: 'rgba(58,134,255,0.7)',
+          borderRadius: 4,
+        },
+        {
+          label: 'Privé/woon-werk',
+          data: priveData,
+          backgroundColor: 'rgba(255,107,107,0.7)',
+          borderRadius: 4,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { labels: { color: '#9090b8', font: { family: 'DM Sans', size: 12 } } }
+      },
+      scales: {
+        x: { stacked: true, ticks: { color: '#9090b8', font: { family: 'DM Sans', size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        y: { stacked: true, ticks: { color: '#9090b8', font: { family: 'DM Sans', size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+      }
+    }
+  });
+}
+
+// ── Instellingen ──────────────────────────────
+function initSettings() {
+  document.getElementById('btn-test-sheets').addEventListener('click', testSheetsVerbinding);
+  document.getElementById('btn-export-csv').addEventListener('click', exporteerCSV);
+  document.getElementById('btn-wis-data').addEventListener('click', wisData);
+  document.getElementById('btn-sync-nu').addEventListener('click', verwerkSyncQueue);
+
+  ['s-kenteken','s-merk','s-thuis','s-kantoor','s-sheets-url'].forEach(id => {
+    document.getElementById(id).addEventListener('change', slaInstellingenOp);
+  });
+}
+
+function laadInstellingen() {
+  document.getElementById('s-kenteken').value = instellingen.kenteken || '';
+  document.getElementById('s-merk').value = instellingen.merk || '';
+  document.getElementById('s-thuis').value = instellingen.thuis || '';
+  document.getElementById('s-kantoor').value = instellingen.kantoor || '';
+  document.getElementById('s-sheets-url').value = instellingen.sheetsUrl || '';
+}
+
+function slaInstellingenOp() {
+  instellingen = {
+    kenteken: document.getElementById('s-kenteken').value,
+    merk: document.getElementById('s-merk').value,
+    thuis: document.getElementById('s-thuis').value,
+    kantoor: document.getElementById('s-kantoor').value,
+    sheetsUrl: document.getElementById('s-sheets-url').value
+  };
+  DB.set('instellingen', instellingen);
+}
+
+async function testSheetsVerbinding() {
+  const url = document.getElementById('s-sheets-url').value;
+  const statusEl = document.getElementById('sheets-status');
+  if (!url) { alert('Voer eerst een URL in.'); return; }
+
+  statusEl.className = 'sheets-status';
+  statusEl.textContent = 'Verbinding testen...';
+  statusEl.classList.remove('hidden');
+
+  try {
+    const resp = await fetch(url + '?test=1', { method: 'GET' });
+    if (resp.ok) {
+      statusEl.className = 'sheets-status ok';
+      statusEl.textContent = '✓ Verbinding succesvol!';
+    } else {
+      throw new Error('HTTP ' + resp.status);
+    }
+  } catch (err) {
+    statusEl.className = 'sheets-status fout';
+    statusEl.textContent = '✗ Verbinding mislukt: ' + err.message;
+  }
+}
+
+// ── Google Sheets sync ────────────────────────
+async function syncRit(rit) {
+  if (!instellingen.sheetsUrl) return;
+  const syncBanner = document.getElementById('sync-banner');
+  syncBanner.classList.remove('hidden');
+
+  try {
+    const payload = ritNaarSheetsRij(rit);
+    const resp = await fetch(instellingen.sheetsUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (resp.ok) {
+      // Markeer als gesynchroniseerd
+      ritten = ritten.map(r => r.id === rit.id ? {...r, gesynchroniseerd: true} : r);
+      DB.set('ritten', ritten);
+      syncQueue = syncQueue.filter(id => id !== rit.id);
+      DB.set('syncQueue', syncQueue);
+    }
+  } catch (err) {
+    console.log('Sync mislukt, later opnieuw proberen:', err.message);
+  } finally {
+    syncBanner.classList.add('hidden');
+  }
+}
+
+async function verwerkSyncQueue() {
+  if (!instellingen.sheetsUrl || syncQueue.length === 0) return;
+  const openstaand = ritten.filter(r => syncQueue.includes(r.id));
+  for (const rit of openstaand) {
+    await syncRit(rit);
+  }
+  renderStats();
+}
+
+function ritNaarSheetsRij(r) {
+  return {
+    id: r.id,
+    datum: r.datum,
+    type: typeLabel(r.type),
+    kmStart: r.kmStart,
+    kmEind: r.kmEind,
+    kmAfstand: r.kmAfstand,
+    van: r.van,
+    via: r.via || '',
+    naar: r.naar,
+    doel: r.doel || '',
+    opmerking: r.opmerking || '',
+    kenteken: instellingen.kenteken || '',
+    voertuig: instellingen.merk || '',
+    aangemaakt: r.aangemaakt
+  };
+}
+
+// ── CSV export ────────────────────────────────
+function exporteerCSV() {
+  if (ritten.length === 0) { alert('Geen ritten om te exporteren.'); return; }
+
+  const header = ['ID','Datum','Type','Begin km','Eind km','Afstand km','Van','Via','Naar','Zakelijk doel','Opmerking','Kenteken','Voertuig','Aangemaakt'];
+  const rijen = ritten.sort((a,b) => a.datum.localeCompare(b.datum)).map(r => [
+    r.id, r.datum, typeLabel(r.type), r.kmStart, r.kmEind, r.kmAfstand,
+    `"${r.van}"`, `"${r.via || ''}"`, `"${r.naar}"`,
+    `"${r.doel || ''}"`, `"${r.opmerking || ''}"`,
+    instellingen.kenteken || '', instellingen.merk || '',
+    r.aangemaakt
+  ]);
+
+  const csv = [header.join(','), ...rijen.map(r => r.join(','))].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `rittenregistratie_${new Date().getFullYear()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function wisData() {
+  if (!confirm('Weet je zeker dat je ALLE ritten wilt verwijderen? Dit kan niet ongedaan worden gemaakt.')) return;
+  ritten = [];
+  syncQueue = [];
+  DB.set('ritten', ritten);
+  DB.set('syncQueue', syncQueue);
+  renderLijst();
+  alert('Alle data verwijderd.');
+}
+
+// ── Modal ─────────────────────────────────────
+function initModal() {
+  document.getElementById('modal-close').addEventListener('click', sluitModal);
+  document.getElementById('modal-overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modal-overlay')) sluitModal();
+  });
+  document.getElementById('modal-verwijder').addEventListener('click', verwijderRit);
+}
+
+let actieveRitId = null;
+
+function openModal(id) {
+  const rit = ritten.find(r => r.id === id);
+  if (!rit) return;
+  actieveRitId = id;
+
+  document.getElementById('modal-titel').textContent = `${formatDatum(rit.datum)} · ${rit.kmAfstand} km`;
+
+  const rijen = [
+    ['Type', `<span class="type-badge badge-${rit.type}">${typeLabel(rit.type)}</span>`],
+    ['Datum', formatDatum(rit.datum)],
+    ['Beginstand', `${rit.kmStart.toLocaleString('nl-NL')} km`],
+    ['Eindstand', `${rit.kmEind.toLocaleString('nl-NL')} km`],
+    ['Afstand', `<strong>${rit.kmAfstand.toLocaleString('nl-NL')} km</strong>`],
+    ['Van', rit.van],
+    rit.via ? ['Via', rit.via] : null,
+    ['Naar', rit.naar],
+    rit.doel ? ['Zakelijk doel', rit.doel] : null,
+    rit.opmerking ? ['Opmerking', rit.opmerking] : null,
+    ['Gesynchroniseerd', rit.gesynchroniseerd ? '✓ Ja' : '⚠ Nee'],
+  ].filter(Boolean);
+
+  document.getElementById('modal-body').innerHTML = rijen.map(([label, val]) => `
+    <div class="modal-detail-row">
+      <span class="modal-detail-label">${label}</span>
+      <span class="modal-detail-val">${val}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+function sluitModal() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+  actieveRitId = null;
+}
+
+function verwijderRit() {
+  if (!actieveRitId) return;
+  if (!confirm('Deze rit verwijderen?')) return;
+  ritten = ritten.filter(r => r.id !== actieveRitId);
+  syncQueue = syncQueue.filter(id => id !== actieveRitId);
+  DB.set('ritten', ritten);
+  DB.set('syncQueue', syncQueue);
+  sluitModal();
+  renderLijst();
+}
+
+// ── Jaar filter helpers ───────────────────────
+function vulJaarFilters() {
+  const jaren = [...new Set(ritten.map(r => new Date(r.datum).getFullYear()))];
+  const huidigJaar = new Date().getFullYear();
+  if (!jaren.includes(huidigJaar)) jaren.push(huidigJaar);
+  jaren.sort((a,b) => b-a);
+
+  ['filter-jaar', 'stats-jaar'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = jaren.map(j => `<option value="${j}" ${j === huidigJaar ? 'selected' : ''}>${j}</option>`).join('');
+    sel.addEventListener('change', () => {
+      if (id === 'filter-jaar') renderLijst();
+      else renderStats();
+    });
+  });
+}
+
+// ── Helpers ───────────────────────────────────
+function vandaag() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function formatDatum(d) {
+  return new Date(d + 'T12:00:00').toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function formatMaandLabel(ym) {
+  const [year, month] = ym.split('-');
+  return new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' });
+}
+
+function typeLabel(type) {
+  return { zakelijk: 'Zakelijk', prive: 'Privé', 'woon-werk': 'Woon-werk' }[type] || type;
+}
+
+</script>
+</body>
+</html>
