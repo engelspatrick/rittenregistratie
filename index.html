@@ -1263,6 +1263,10 @@ function slaInstellingenOp() {
     sheetsUrl: document.getElementById('s-sheets-url').value
   };
   DB.set('instellingen', instellingen);
+  // Probeer direct openstaande ritten te synchroniseren
+  if (instellingen.sheetsUrl && syncQueue.length > 0) {
+    verwerkSyncQueue();
+  }
 }
 
 async function testSheetsVerbinding() {
@@ -1296,17 +1300,17 @@ async function syncRit(rit) {
 
   try {
     const payload = ritNaarSheetsRij(rit);
-    const resp = await fetch(instellingen.sheetsUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    const url = instellingen.sheetsUrl + '?data=' + encoded;
+    const resp = await fetch(url, { method: 'GET' });
     if (resp.ok) {
-      // Markeer als gesynchroniseerd
-      ritten = ritten.map(r => r.id === rit.id ? {...r, gesynchroniseerd: true} : r);
-      DB.set('ritten', ritten);
-      syncQueue = syncQueue.filter(id => id !== rit.id);
-      DB.set('syncQueue', syncQueue);
+      const result = await resp.json();
+      if (result.status === 'ok' || result.status === 'skip') {
+        ritten = ritten.map(r => r.id === rit.id ? {...r, gesynchroniseerd: true} : r);
+        DB.set('ritten', ritten);
+        syncQueue = syncQueue.filter(id => id !== rit.id);
+        DB.set('syncQueue', syncQueue);
+      }
     }
   } catch (err) {
     console.log('Sync mislukt, later opnieuw proberen:', err.message);
