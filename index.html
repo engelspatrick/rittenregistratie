@@ -820,6 +820,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Online: probeer sync queue te verwerken
   window.addEventListener('online', () => verwerkSyncQueue());
+
+  // Sync knop altijd beschikbaar maken
+  document.getElementById('btn-sync-nu').addEventListener('click', () => {
+    verwerkSyncQueue().then(() => renderStats());
+  });
 });
 
 // ── Tabs ─────────────────────────────────────
@@ -1170,11 +1175,12 @@ function renderStats() {
   renderGrafiek(jaar);
 
   // Sync queue info
+  const sqInfo = document.getElementById('sync-queue-info');
   if (syncQueue.length > 0) {
-    document.getElementById('sync-queue-info').classList.remove('hidden');
+    sqInfo.classList.remove('hidden');
     document.getElementById('sync-queue-txt').textContent = `${syncQueue.length} rit(ten) niet gesynchroniseerd`;
   } else {
-    document.getElementById('sync-queue-info').classList.add('hidden');
+    sqInfo.classList.add('hidden');
   }
 }
 
@@ -1236,6 +1242,7 @@ function initSettings() {
 
   ['s-kenteken','s-merk','s-thuis','s-kantoor','s-sheets-url'].forEach(id => {
     document.getElementById(id).addEventListener('change', slaInstellingenOp);
+    document.getElementById(id).addEventListener('blur', slaInstellingenOp);
   });
 }
 
