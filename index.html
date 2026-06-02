@@ -521,6 +521,40 @@ input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
 
+/* ---- ZAKELIJKE DOELEN ---- */
+.doelen-lijst {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 12px;
+}
+.doel-item {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg3); border: 1.5px solid var(--border);
+  border-radius: 20px; padding: 5px 10px 5px 12px;
+  font-size: 13px; font-weight: 600; color: var(--feldgrau);
+}
+.doel-verwijder {
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); display: flex; align-items: center;
+  padding: 2px; border-radius: 50%;
+  transition: color 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.doel-verwijder:hover { color: var(--redwood); background: var(--redwood-soft); }
+
+.doel-toevoegen-wrap {
+  display: flex; gap: 8px; align-items: center;
+}
+.doel-toevoegen-wrap input { flex: 1; }
+.btn-doel-add {
+  width: 44px; height: 44px; flex-shrink: 0;
+  background: var(--feldgrau); border: none;
+  border-radius: var(--radius-sm); color: var(--sunset);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-doel-add:active { background: var(--feldgrau2); }
+
 </style>
 </head>
 <body>
@@ -640,7 +674,8 @@ input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity
       <!-- Zakelijk doel (alleen bij zakelijk) -->
       <div id="zakelijk-veld" class="field">
         <label for="f-doel">Zakelijk doel / relatie</label>
-        <input type="text" id="f-doel" placeholder="bv. Klantbezoek Acme BV" />
+        <input type="text" id="f-doel" placeholder="Kies of typ een doel..." autocomplete="off" />
+        <div class="adres-suggestions hidden" id="sug-doel"></div>
       </div>
 
       <!-- Opmerking -->
@@ -771,6 +806,18 @@ input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity
     </div>
 
     <div class="settings-sectie">
+      <h3>Zakelijke doelen</h3>
+      <p class="settings-uitleg">Snelkeuze opties bij het invoeren van ritten. Klik op een doel om het te verwijderen.</p>
+      <div id="doelen-lijst" class="doelen-lijst"></div>
+      <div class="doel-toevoegen-wrap">
+        <input type="text" id="s-nieuw-doel" placeholder="Nieuw doel toevoegen..." />
+        <button id="btn-doel-toevoegen" class="btn-doel-add">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="settings-sectie">
       <h3>Google Sheets koppeling</h3>
       <p class="settings-uitleg">Vul hieronder de URL in van jouw Google Apps Script Web App (zie instructies in de README).</p>
       <div class="field">
@@ -834,6 +881,17 @@ let instellingen = DB.get('instellingen', {
   kenteken: '', merk: '', thuis: '', kantoor: '', sheetsUrl: ''
 });
 let syncQueue = DB.get('syncQueue', []); // IDs die nog niet gesynchroniseerd zijn
+let zakelijkeDoelen = DB.get('zakelijkeDoelen', [
+  'Klantbezoek',
+  'Prospectbezoek',
+  'Magazijn',
+  'Evenement bezoek',
+  'Evenement opbouw/afbouw',
+  'Locatieverkenning',
+  'DHL/PostNL/UPS zending',
+  'Netwerkevenement',
+  'Intern overleg'
+]);
 
 // ── Init ─────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -924,6 +982,17 @@ function initForm() {
     });
   });
 
+  // Zakelijk doel snelkeuze
+  const fDoel = document.getElementById('f-doel');
+  fDoel.addEventListener('focus', toonDoelSuggesties);
+  fDoel.addEventListener('blur', () => {
+    setTimeout(() => {
+      const s = document.getElementById('sug-doel');
+      if (s) s.classList.add('hidden');
+    }, 200);
+  });
+  fDoel.addEventListener('input', toonDoelSuggesties);
+
   // Opslaan
   document.getElementById('form-rit').addEventListener('submit', slaRitOp);
 
@@ -960,6 +1029,29 @@ function toonStandaardSuggesties(fieldId) {
   sugEl.querySelectorAll('.sug-item').forEach(item => {
     item.addEventListener('mousedown', () => {
       document.getElementById(fieldId).value = item.dataset.waarde;
+      sugEl.classList.add('hidden');
+    });
+  });
+}
+
+function toonDoelSuggesties() {
+  const fDoel = document.getElementById('f-doel');
+  const sugEl = document.getElementById('sug-doel');
+  if (!sugEl) return;
+
+  const zoek = fDoel.value.toLowerCase();
+  const gefilterd = zakelijkeDoelen.filter(d => d.toLowerCase().includes(zoek));
+
+  if (gefilterd.length === 0) { sugEl.classList.add('hidden'); return; }
+
+  sugEl.innerHTML = gefilterd.map(d =>
+    `<div class="sug-item" data-waarde="${d}">${d}</div>`
+  ).join('');
+  sugEl.classList.remove('hidden');
+
+  sugEl.querySelectorAll('.sug-item').forEach(item => {
+    item.addEventListener('mousedown', () => {
+      fDoel.value = item.dataset.waarde;
       sugEl.classList.add('hidden');
     });
   });
@@ -1249,13 +1341,13 @@ function renderGrafiek(jaar) {
         {
           label: 'Zakelijk',
           data: zakelijkData,
-          backgroundColor: 'rgba(58,134,255,0.7)',
+          backgroundColor: 'rgba(168,198,218,0.85)',
           borderRadius: 4,
         },
         {
           label: 'Privé/woon-werk',
           data: priveData,
-          backgroundColor: 'rgba(255,107,107,0.7)',
+          backgroundColor: 'rgba(174,94,78,0.75)',
           borderRadius: 4,
         }
       ]
@@ -1263,14 +1355,47 @@ function renderGrafiek(jaar) {
     options: {
       responsive: true,
       plugins: {
-        legend: { labels: { color: '#9090b8', font: { family: 'DM Sans', size: 12 } } }
+        legend: { labels: { color: '#6b6b58', font: { family: 'Lato', size: 12 } } }
       },
       scales: {
-        x: { stacked: true, ticks: { color: '#9090b8', font: { family: 'DM Sans', size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
-        y: { stacked: true, ticks: { color: '#9090b8', font: { family: 'DM Sans', size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+        x: { stacked: true, ticks: { color: '#6b6b58', font: { family: 'Lato', size: 11 } }, grid: { color: 'rgba(59,73,57,0.08)' } },
+        y: { stacked: true, ticks: { color: '#6b6b58', font: { family: 'Lato', size: 11 } }, grid: { color: 'rgba(59,73,57,0.08)' } }
       }
     }
   });
+}
+
+// ── Zakelijke doelen ──────────────────────────
+function renderDoelenLijst() {
+  const container = document.getElementById('doelen-lijst');
+  if (!container) return;
+  container.innerHTML = zakelijkeDoelen.map((d, i) => `
+    <div class="doel-item">
+      <span class="doel-naam">${d}</span>
+      <button class="doel-verwijder" data-index="${i}" title="Verwijderen">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.doel-verwijder').forEach(btn => {
+    btn.addEventListener('click', () => {
+      zakelijkeDoelen.splice(parseInt(btn.dataset.index), 1);
+      DB.set('zakelijkeDoelen', zakelijkeDoelen);
+      renderDoelenLijst();
+    });
+  });
+}
+
+function voegDoelToe() {
+  const input = document.getElementById('s-nieuw-doel');
+  const waarde = input.value.trim();
+  if (!waarde) return;
+  if (zakelijkeDoelen.includes(waarde)) { alert('Dit doel staat al in de lijst.'); return; }
+  zakelijkeDoelen.push(waarde);
+  DB.set('zakelijkeDoelen', zakelijkeDoelen);
+  input.value = '';
+  renderDoelenLijst();
 }
 
 // ── Instellingen ──────────────────────────────
@@ -1279,6 +1404,12 @@ function initSettings() {
   document.getElementById('btn-export-csv').addEventListener('click', exporteerCSV);
   document.getElementById('btn-wis-data').addEventListener('click', wisData);
   document.getElementById('btn-sync-nu').addEventListener('click', verwerkSyncQueue);
+
+  renderDoelenLijst();
+  document.getElementById('btn-doel-toevoegen').addEventListener('click', voegDoelToe);
+  document.getElementById('s-nieuw-doel').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); voegDoelToe(); }
+  });
 
   ['s-kenteken','s-merk','s-thuis','s-kantoor','s-sheets-url'].forEach(id => {
     document.getElementById(id).addEventListener('change', slaInstellingenOp);
